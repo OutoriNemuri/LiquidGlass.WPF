@@ -117,13 +117,13 @@ public class GlassTabBar : ItemsControl
     public GlassTabBar()
     {
         DefaultStyleKey = typeof(GlassTabBar);
-        Loaded += (_, __) => Dispatcher.BeginInvoke(new Action(SyncIndicator));
+        Loaded += (_, __) => Dispatcher.BeginInvoke(new Action(() => SyncIndicator(animate: false)));
     }
 
     protected override void OnItemsChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         base.OnItemsChanged(e);
-        Dispatcher.BeginInvoke(new Action(SyncIndicator));
+        Dispatcher.BeginInvoke(new Action(() => SyncIndicator(animate: false)));
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
@@ -154,7 +154,7 @@ public class GlassTabBar : ItemsControl
     {
         base.OnApplyTemplate();
         _itemsHost = GetTemplateChild("PART_Items") as ItemsControl ?? this;
-        Dispatcher.BeginInvoke(new Action(SyncIndicator));
+        Dispatcher.BeginInvoke(new Action(() => SyncIndicator(animate: false)));
     }
 
     private void SyncIndicator(bool animate = false)

@@ -263,7 +263,7 @@ public static class ColorParser
                 var r = (byte)Math.Clamp((int)double.Parse(parts[0].Trim(), CultureInfo.InvariantCulture), 0, 255);
                 var g = (byte)Math.Clamp((int)double.Parse(parts[1].Trim(), CultureInfo.InvariantCulture), 0, 255);
                 var b = (byte)Math.Clamp((int)double.Parse(parts[2].Trim(), CultureInfo.InvariantCulture), 0, 255);
-                var a = 255;
+                var a = (byte)255;
                 if (parts.Length >= 4)
                     a = (byte)Math.Clamp((int)(double.Parse(parts[3].Trim(), CultureInfo.InvariantCulture) * 255), 0, 255);
                 return Color.FromArgb(a, r, g, b);

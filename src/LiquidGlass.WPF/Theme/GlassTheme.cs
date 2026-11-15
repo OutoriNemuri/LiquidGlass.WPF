@@ -15,7 +15,7 @@ public enum GlassThemeMode { Light, Dark, System }
 public static class GlassTheme
 {
     private const string PaletteKey = "__liquidglass_palette";
-    private static readonly List<WeakReference<FrameworkElement>> Hosts = new();
+    private static readonly List<WeakReference> Hosts = new();
 
     private static GlassThemeMode _mode = GlassThemeMode.System;
     private static GlassPalette _active = GlassTokens.Current.Light;
@@ -68,8 +68,8 @@ public static class GlassTheme
     /// <summary>注册一个会在主题变化时刷新资源引用的宿主元素。</summary>
     public static void Register(FrameworkElement element)
     {
-        Hosts.RemoveAll(w => w.Target is null);
-        Hosts.Add(new WeakReference<FrameworkElement>(element));
+        Hosts.RemoveAll(w => !w.IsAlive);
+        Hosts.Add(new WeakReference(element));
     }
 
     /// <summary>重新生成资源字典并通知所有已注册宿主。</summary>

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using LiquidGlass.WPF.Primitives;
 
 namespace LiquidGlass.WPF.Effects;
 
@@ -86,7 +87,7 @@ public static class BackdropCapture
             if (current is FrameworkElement fe)
             {
                 if (GetIsSource(fe)) return fe;
-                if (fallback is null && fe is not GlassSurfaceHostMarker) fallback = fe;
+                if (fallback is null && fe is not GlassSurface) fallback = fe;
             }
             current = VisualTreeHelper.GetParent(current);
         }
@@ -157,5 +158,3 @@ public static class BackdropCapture
     public static void Invalidate() => Cache.Clear();
 }
 
-/// <summary>内部标记类型（避免把玻璃自身当成捕获源）。</summary>
-internal sealed class GlassSurfaceHostMarker { }
