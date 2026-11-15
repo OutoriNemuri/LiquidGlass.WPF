@@ -1,0 +1,11 @@
+<Application x:Class="LiquidGlass.Demo.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- 库的默认样式全部来自 LiquidGlass.WPF/Themes/Generic.xaml；
+                 应用层只需在需要时追加自定义 token 覆盖（见 docs/THEMING.md）。 -->
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

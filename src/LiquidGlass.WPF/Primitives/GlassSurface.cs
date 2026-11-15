@@ -1,0 +1,283 @@
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Effects;
+using System.Windows.Shapes;
+using System.Windows.Threading;
+using LiquidGlass.WPF.Effects;
+using LiquidGlass.WPF.Theme;
+
+namespace LiquidGlass.WPF.Primitives;
+
+public enum GlassMaterialKind { Regular, Clear, Prominent, Hard }
+public enum GlassAppearance { Auto, Light, Dark }
+
+/// <summary>
+/// 玻璃基元：一个带 6 个渲染通道的容器（背景捕获 → 模糊 → 透镜 → 色调 → 镜面 → 描边）。
+/// 所有几何形状/材质参数都来自 token，控件层只做组合，不写死任何视觉常量。
+/// </summary>
+public class GlassSurface : ContentControl
+{
+    public static readonly DependencyProperty MaterialProperty = DependencyProperty.Register(
+        nameof(Material), typeof(GlassMaterialKind), typeof(GlassSurface),
+        new PropertyMetadata(GlassMaterialKind.Regular, OnVisualChanged));
+
+    public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty.Register(
+        nameof(CornerRadius), typeof(CornerRadius), typeof(GlassSurface),
+        new PropertyMetadata(new CornerRadius(14), OnVisualChanged));
+
+    public static readonly DependencyProperty IsLiveProperty = DependencyProperty.Register(
+        nameof(IsLive), typeof(bool), typeof(GlassSurface), new PropertyMetadata(false, OnLiveChanged));
+
+    public static readonly DependencyProperty LiveFrameRateProperty = DependencyProperty.Register(
+        nameof(LiveFrameRate), typeof(int), typeof(GlassSurface), new PropertyMetadata(30, OnLiveChanged));
+
+    public static readonly DependencyProperty AppearanceProperty = DependencyProperty.Register(
+        nameof(Appearance), typeof(GlassAppearance), typeof(GlassSurface),
+        new PropertyMetadata(GlassAppearance.Auto, OnVisualChanged));
+
+    public static readonly DependencyProperty EffectiveAppearanceProperty = DependencyProperty.Register(
+        nameof(EffectiveAppearance), typeof(GlassAppearance), typeof(GlassSurface),
+        new PropertyMetadata(GlassAppearance.Light));
+
+    public GlassMaterialKind Material
+    {
+        get => (GlassMaterialKind)GetValue(MaterialProperty);
+        set => SetValue(MaterialProperty, value);
+    }
+
+    public CornerRadius CornerRadius
+    {
+        get => (CornerRadius)GetValue(CornerRadiusProperty);
+        set => SetValue(CornerRadiusProperty, value);
+    }
+
+    /// <summary>实时捕获背景（滚动、视频、动画壁纸时需要开启）。</summary>
+    public bool IsLive
+    {
+        get => (bool)GetValue(IsLiveProperty);
+        set => SetValue(IsLiveProperty, value);
+    }
+
+    public int LiveFrameRate
+    {
+        get => (int)GetValue(LiveFrameRateProperty);
+        set => SetValue(LiveFrameRateProperty, value);
+    }
+
+    public GlassAppearance Appearance
+    {
+        get => (GlassAppearance)GetValue(AppearanceProperty);
+        set => SetValue(AppearanceProperty, value);
+    }
+
+    /// <summary>只读：实际生效的明暗外观（Auto 时根据背景亮度推断）。</summary>
+    public GlassAppearance EffectiveAppearance => (GlassAppearance)GetValue(EffectiveAppearanceProperty);
+
+    public GlassSurface()
+    {
+        DefaultStyleKey = typeof(GlassSurface);
+        GlassTheme.Register(this);
+        SizeChanged += (_, __) => ApplyGeometry();
+        Loaded += (_, __) => { Refresh(); RestartTimer(); };
+        Unloaded += (_, __) => StopTimer();
+    }
+
+    private Image? _backdrop;
+    private Image? _lens;
+    private Border? _tint;
+    private Border? _spec;
+    private Border? _rim;
+    private Grid? _clipHost;
+    private DispatcherTimer? _timer;
+
+    public override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+        _backdrop = GetTemplateChild("PART_Backdrop") as Image;
+        _lens = GetTemplateChild("PART_Lens") as Image;
+        _tint = GetTemplateChild("PART_Tint") as Border;
+        _spec = GetTemplateChild("PART_Spec") as Border;
+        _rim = GetTemplateChild("PART_Rim") as Border;
+        _clipHost = GetTemplateChild("PART_ClipHost") as Grid;
+        ApplyGeometry();
+        RestartTimer();
+        Refresh();
+    }
+
+    private static void OnVisualChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is GlassSurface s)
+        {
+            s.ApplyGeometry();
+            s.Refresh();
+        }
+    }
+
+    private static void OnLiveChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is GlassSurface s) s.RestartTimer();
+    }
+
+    private void RestartTimer()
+    {
+        StopTimer();
+        if (!IsLive || !IsLoaded) return;
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000.0 / Math.Max(4, LiveFrameRate)) };
+        _timer.Tick += (_, __) => Refresh();
+        _timer.Start();
+    }
+
+    private void StopTimer()
+    {
+        _timer?.Stop();
+        _timer = null;
+    }
+
+    /// <summary>把圆角与描边几何写进模板元素。</summary>
+    private void ApplyGeometry()
+    {
+        if (_clipHost is null) return;
+        var r = CornerRadius;
+        var w = ActualWidth;
+        var h = ActualHeight;
+        if (w <= 0 || h <= 0) return;
+
+        var rect = new RectangleGeometry(new Rect(0, 0, w, h))
+        {
+            RadiusX = Math.Max(0, r.TopLeft),
+            RadiusY = Math.Max(0, r.TopLeft),
+        };
+        _clipHost.Clip = rect;
+
+        if (_rim is not null)
+        {
+            var spec = Spec;
+            _rim.CornerRadius = r;
+            _rim.BorderThickness = new Thickness(spec.RimWidth);
+        }
+    }
+
+    private GlassMaterialSpec Spec => GlassTokens.Current.Material(Material.ToString().ToLowerInvariant());
+
+    /// <summary>重新合成所有图层：捕获背景 → 判断明暗 → 上色。</summary>
+    public void Refresh()
+    {
+        if (!IsLoaded) return;
+        var spec = Spec;
+        var palette = GlassTheme.Palette;
+
+        // 1) 背景捕获（缓存 + 可选实时刷新）
+        if (_backdrop is not null)
+        {
+            var bitmap = BackdropCapture.Capture(this, scale: 0.4);
+            if (bitmap is not null)
+            {
+                _backdrop.Source = bitmap;
+                _backdrop.Effect = GlassTheme.ReduceTransparency || spec.Blur <= 0
+                    ? null
+                    : new BlurEffect { Radius = spec.Blur * 0.4, RenderingBias = RenderingBias.Performance };
+                _backdrop.Opacity = GlassTheme.ReduceTransparency ? 0 : 1;
+
+                // 2) 亮度自适应：regular glass 会感知背景明度并翻转内容颜色
+                if (Appearance == GlassAppearance.Auto)
+                {
+                    var lum = BackdropCapture.AverageLuminance(bitmap);
+                    var effective = lum < 0.42 ? GlassAppearance.Dark : GlassAppearance.Light;
+                    if (EffectiveAppearance != effective)
+                    {
+                        SetValue(EffectiveAppearanceProperty, effective);
+                        Foreground = new SolidColorBrush(effective == GlassAppearance.Dark
+                            ? palette.Label
+                            : palette.Label);
+                    }
+                }
+                else if (EffectiveAppearance != Appearance)
+                {
+                    SetValue(EffectiveAppearanceProperty, Appearance);
+                }
+            }
+            else
+            {
+                _backdrop.Source = null;
+                _backdrop.Effect = null;
+            }
+        }
+
+        // 3) 透镜层：同一张背景的放大副本，模拟边缘弯折
+        if (_lens is not null)
+        {
+            _lens.Source = _backdrop?.Source;
+            var scale = spec.LensScale <= 0 ? 1 : spec.LensScale;
+            if (_lens.RenderTransform is not ScaleTransform st)
+            {
+                st = new ScaleTransform(1, 1);
+                _lens.RenderTransformOrigin = new Point(0.5, 0.5);
+                _lens.RenderTransform = st;
+            }
+            st.ScaleX = scale;
+            st.ScaleY = scale;
+            _lens.Opacity = GlassTheme.ReduceTransparency ? 0 : Math.Min(0.48, spec.LensOpacity * 0.42);
+            if (spec.LensBlur > 0)
+                _lens.Effect = new BlurEffect { Radius = spec.LensBlur * 0.35 };
+            else
+                _lens.Effect = null;
+        }
+
+        // 4) 色调层（可读性保障）
+        if (_tint is not null)
+        {
+            var opacity = GlassTheme.ReduceTransparency
+                ? 0.96
+                : (Material == GlassMaterialKind.Clear ? palette.TintOpacityClear : spec.TintOpacity);
+            var tintColor = Material == GlassMaterialKind.Prominent ? palette.Accent : palette.Tint;
+            _tint.Background = new SolidColorBrush(WithAlpha(tintColor, (byte)Math.Round(opacity * 255)));
+        }
+
+        // 5) 镜面高光
+        if (_spec is not null)
+        {
+            var alpha = (byte)Math.Round(Math.Clamp(spec.Specular, 0, 1) * (GlassTheme.IncreaseContrast ? 0.55 : 0.85) * 255);
+            _spec.Background = new LinearGradientBrush(
+                new GradientStopCollection
+                {
+                    new GradientStop(Color.FromArgb(alpha, 255, 255, 255), 0),
+                    new GradientStop(Color.FromArgb((byte)(alpha * 0.35), 255, 255, 255), 0.34),
+                    new GradientStop(Colors.Transparent, 0.62),
+                },
+                new Point(0, 0), new Point(0, 1));
+            _spec.Opacity = 1;
+        }
+
+        // 6) 描边（上亮下暗，制造厚度）
+        if (_rim is not null)
+        {
+            var light = EffectiveAppearance == GlassAppearance.Dark
+                ? WithAlpha(palette.RimLight, (byte)Math.Min(255, palette.RimLight.A + 40))
+                : palette.RimLight;
+            _rim.BorderBrush = new LinearGradientBrush(
+                new GradientStopCollection
+                {
+                    new GradientStop(light, 0),
+                    new GradientStop(WithAlpha(palette.RimShade, palette.RimShade.A), 0.55),
+                    new GradientStop(WithAlpha(palette.RimShade, palette.RimShade.A), 1),
+                },
+                new Point(0, 0), new Point(0, 1));
+
+            if (_clipHost is not null)
+                _clipHost.Effect = GlassTheme.ReduceTransparency
+                    ? null
+                    : new DropShadowEffect
+                    {
+                        Color = palette.Shadow,
+                        Opacity = Math.Clamp(0.9 * spec.ShadowOpacity, 0, 1),
+                        BlurRadius = spec.ShadowBlur,
+                        ShadowDepth = 0,
+                        Direction = 270,
+                    };
+        }
+    }
+
+    private static Color WithAlpha(Color c, byte a) => Color.FromArgb(a, c.R, c.G, c.B);
+}

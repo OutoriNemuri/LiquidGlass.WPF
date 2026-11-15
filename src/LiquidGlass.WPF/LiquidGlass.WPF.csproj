@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LiquidGlass.WPF</RootNamespace>
+    <AssemblyName>LiquidGlass.WPF</AssemblyName>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Description>iOS 26 Liquid Glass material system for WPF — token driven, spring animated.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 设计 token：单一数据源，同时被 preview 渲染器读取 -->
+    <EmbeddedResource Include="..\..\tokens\liquid-glass.tokens.json" Link="Tokens\liquid-glass.tokens.json" />
+    <!-- 可选：预编译的透镜像素着色器（fxc 产物）。缺失时自动回退到几何透镜路径 -->
+    <EmbeddedResource Include="Shaders\LensRefraction.cso" Condition="Exists('Shaders\LensRefraction.cso')" />
+  </ItemGroup>
+
+</Project>

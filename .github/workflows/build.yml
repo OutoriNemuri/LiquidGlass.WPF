@@ -1,0 +1,47 @@
+name: build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    # WPF 必须 Windows；这个 runner 自带 .NET SDK，无需自装
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore LiquidGlass.WPF.sln
+
+      - name: Build (lib)
+        run: dotnet build src/LiquidGlass.WPF/LiquidGlass.WPF.csproj -c Release --no-restore -v n
+
+      - name: Build (demo)
+        run: dotnet build samples/LiquidGlass.Demo/LiquidGlass.Demo.csproj -c Release --no-restore -v n
+
+      # XAML 错误默认已经包含在 build 里；这里额外把每一条 MSBuild 警告/错误原样展开，
+      # 方便直接贴进对话定位（默认格式会把太长的错误截断）。
+      - name: Re-emit diagnostics verbatim
+        if: failure()
+        run: |
+          dotnet build LiquidGlass.WPF.sln -c Release -v diag 2>&1 |
+            Select-String -Pattern 'error [A-Z]+[0-9]+|warning [A-Z]+[0-9]+' |
+            ForEach-Object { $_.Line }
+
+      # 产出可下载的 Demo，用于在真实 Windows 上看效果
+      - name: Upload demo artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiquidGlass.Demo
+          path: samples/LiquidGlass.Demo/bin/Release/net8.0-windows/
+          if-no-files-found: warn

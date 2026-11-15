@@ -1,0 +1,182 @@
+{
+  "$schema": "https://liquidglass.dev/schema/tokens-1.json",
+  "meta": {
+    "name": "LiquidGlass · iOS 26",
+    "version": "1.0.0",
+    "designLanguage": "Apple Liquid Glass (iOS 26 / macOS Tahoe 26)",
+    "notes": "单一数据源：C# GlassTheme 通过 EmbeddedResource 读取本文件；preview 渲染器读取同一文件。"
+  },
+  "palette": {
+    "light": {
+      "tint": "#FFFFFF",
+      "tintOpacity": 0.34,
+      "tintOpacityClear": 0.14,
+      "label": "#101318",
+      "labelSecondary": "rgba(16,19,24,0.58)",
+      "labelTertiary": "rgba(16,19,24,0.38)",
+      "accent": "#0A7CFF",
+      "accentLabel": "#FFFFFF",
+      "systemFill": "rgba(120,130,150,0.14)",
+      "separator": "rgba(16,19,24,0.10)",
+      "surface": "#F3F4F7",
+      "rimLight": "rgba(255,255,255,0.72)",
+      "rimShade": "rgba(12,18,32,0.10)",
+      "shadowColor": "rgba(14,24,44,0.22)",
+      "textShadow": "0 1px 1px rgba(255,255,255,0.55)",
+      "overlayScrim": "rgba(240,244,250,0.22)"
+    },
+    "dark": {
+      "tint": "#171B24",
+      "tintOpacity": 0.42,
+      "tintOpacityClear": 0.16,
+      "label": "#F4F6FA",
+      "labelSecondary": "rgba(244,246,250,0.74)",
+      "labelTertiary": "rgba(244,246,250,0.46)",
+      "accent": "#3D9BFF",
+      "accentLabel": "#FFFFFF",
+      "systemFill": "rgba(240,245,255,0.10)",
+      "separator": "rgba(240,245,255,0.12)",
+      "surface": "#12151C",
+      "rimLight": "rgba(255,255,255,0.34)",
+      "rimShade": "rgba(0,0,0,0.42)",
+      "shadowColor": "rgba(0,0,0,0.52)",
+      "textShadow": "0 1px 2px rgba(0,0,0,0.42)",
+      "overlayScrim": "rgba(8,10,16,0.30)"
+    }
+  },
+  "material": {
+    "regular": {
+      "blur": 24,
+      "saturation": 1.72,
+      "brightness": 1.04,
+      "lensScale": 1.035,
+      "lensOpacity": 0.45,
+      "lensBlur": 10,
+      "dispersion": 0.16,
+      "specular": 0.3,
+      "noise": 0.045,
+      "rimWidth": 1,
+      "shadowOpacity": 1.0,
+      "shadowY": 22,
+      "shadowBlur": 46,
+      "innerGlow": 0.22,
+      "tintOpacity": 0.5
+    },
+    "clear": {
+      "blur": 8,
+      "saturation": 1.35,
+      "brightness": 1.02,
+      "lensScale": 1.055,
+      "lensOpacity": 0.88,
+      "lensBlur": 2,
+      "dispersion": 0.26,
+      "specular": 0.34,
+      "noise": 0.03,
+      "rimWidth": 1,
+      "shadowOpacity": 0.7,
+      "shadowY": 14,
+      "shadowBlur": 30,
+      "innerGlow": 0.14,
+      "tintOpacity": 0.24
+    },
+    "prominent": {
+      "blur": 26,
+      "saturation": 1.9,
+      "brightness": 1.06,
+      "lensScale": 1.03,
+      "lensOpacity": 0.32,
+      "lensBlur": 12,
+      "dispersion": 0.14,
+      "specular": 0.42,
+      "noise": 0.05,
+      "rimWidth": 1.25,
+      "shadowOpacity": 1.0,
+      "shadowY": 20,
+      "shadowBlur": 40,
+      "innerGlow": 0.3,
+      "tintOpacity": 0.82
+    },
+    "hard": {
+      "blur": 30,
+      "saturation": 1.45,
+      "brightness": 1.02,
+      "lensScale": 1.0,
+      "lensOpacity": 0,
+      "lensBlur": 0,
+      "dispersion": 0,
+      "specular": 0.1,
+      "noise": 0.02,
+      "rimWidth": 1,
+      "shadowOpacity": 0.6,
+      "shadowY": 8,
+      "shadowBlur": 24,
+      "innerGlow": 0.08,
+      "tintOpacity": 0.72
+    }
+  },
+  "shape": {
+    "capsule": "half-height",
+    "control": 14,
+    "tabBar": 34,
+    "card": 26,
+    "sheet": 34,
+    "window": 30,
+    "concentricInset": 8,
+    "iconTile": 22
+  },
+  "motion": {
+    "springPresets": {
+      "snappy": {
+        "duration": 0.42,
+        "bounce": 0.11
+      },
+      "smooth": {
+        "duration": 0.62,
+        "bounce": 0.0
+      },
+      "bouncy": {
+        "duration": 0.52,
+        "bounce": 0.34
+      },
+      "press": {
+        "duration": 0.3,
+        "bounce": 0.26
+      },
+      "morph": {
+        "duration": 0.46,
+        "bounce": 0.2
+      },
+      "appear": {
+        "duration": 0.58,
+        "bounce": 0.22
+      }
+    },
+    "press": {
+      "scale": 0.955,
+      "glowRamp": 0.18
+    },
+    "stagger": 0.045,
+    "scrollEdgeFade": 0.9
+  },
+  "type": {
+    "ui": "\"SF Pro Text\", \"SF Pro Display\", \"PingFang SC\", \"Noto Sans CJK SC\", system-ui, sans-serif",
+    "mono": "\"SF Mono\", \"JetBrains Mono\", monospace",
+    "size": {
+      "largeTitle": 26,
+      "title": 17,
+      "headline": 15,
+      "body": 14,
+      "footnote": 12,
+      "caption": 11
+    },
+    "weight": {
+      "regular": 400,
+      "medium": 510,
+      "semibold": 600
+    }
+  },
+  "focus": {
+    "ringWidth": 3,
+    "ringOffset": 2
+  }
+}
