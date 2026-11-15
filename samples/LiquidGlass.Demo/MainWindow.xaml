@@ -63,7 +63,7 @@
                                          HorizontalContentAlignment="Left" Material="Clear"/>
                     </StackPanel>
 
-                    <lgc:GlassSurface Grid.Row="2" Material="Clear" CornerRadius="14" Padding="12,10">
+                    <lg:GlassSurface Grid.Row="2" Material="Clear" CornerRadius="14" Padding="12,10">
                         <StackPanel>
                             <Grid>
                                 <TextBlock Text="iCloud 存储" FontSize="12"/>
@@ -72,7 +72,7 @@
                             <lgc:GlassSlider x:Name="StorageBar" Minimum="0" Maximum="100" Value="64"
                                              Height="18" Margin="0,4,0,0" IsHitTestVisible="False"/>
                         </StackPanel>
-                    </lgc:GlassSurface>
+                    </lg:GlassSurface>
                 </Grid>
             </lg:GlassSurface>
 
