@@ -51,12 +51,27 @@ public partial class MainWindow : GlassWindow
         Title = $"Liquid Glass · WPF — {TabTitles[Math.Clamp(index, 0, TabTitles.Length - 1)]}";
     }
 
-    private System.Collections.Generic.IEnumerable<Button> GetDockButtons()
+    /// <summary>竖向 Dock 点击：移动高亮胶囊。</summary>
+    private void OnSideDockClick(object sender, RoutedEventArgs e)
     {
-        if (DockBar.Content is not Grid grid) yield break;
+        if (sender is not Button button || button.Tag is not string tag) return;
+        if (!int.TryParse(tag, out var index)) return;
+
+        Grid.SetRow(SideIndicator, index);
+        foreach (var child in GetButtons(SideDock))
+            child.Foreground = child == button
+                ? Brushes.White
+                : new SolidColorBrush(Color.FromArgb(0xB4, 0xFF, 0xFF, 0xFF));
+    }
+
+    private static System.Collections.Generic.IEnumerable<Button> GetButtons(ContentControl host)
+    {
+        if (host.Content is not Grid grid) yield break;
         foreach (var child in grid.Children)
             if (child is Button b) yield return b;
     }
+
+    private System.Collections.Generic.IEnumerable<Button> GetDockButtons() => GetButtons(DockBar);
 
     /// <summary>渲染质量分段控件点击。</summary>
     private void OnQualityClick(object sender, MouseButtonEventArgs e)

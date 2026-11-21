@@ -57,10 +57,11 @@
 
                 <Grid Margin="18,16,18,18">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="64"/>
                         <ColumnDefinition Width="232"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="1" Margin="14,0,0,0" CornerRadius="26" ClipToBounds="True">
+                    <Border Grid.Column="2" Margin="14,0,0,0" CornerRadius="26" ClipToBounds="True">
                         <Image Source="Assets/hero.jpg" Stretch="UniformToFill"/>
                     </Border>
                 </Grid>
@@ -69,12 +70,45 @@
             <!-- ══ 玻璃界面层 ══ -->
             <Grid Margin="18,16,18,18">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="64"/>
                     <ColumnDefinition Width="232"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
+                <!-- 竖向 Dock：贴左侧，深色玻璃图标栏 -->
+                <lg:GlassSurface Grid.Column="0" x:Name="SideDock" Width="64" VerticalAlignment="Center"
+                                 CornerRadius="32" Padding="8" Material="Regular"
+                                 HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                                 TintBrush="#F21B1F27" TintOpacity="0.94" Foreground="#FFFFFF">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="44"/>
+                            <RowDefinition Height="44"/>
+                            <RowDefinition Height="44"/>
+                            <RowDefinition Height="44"/>
+                            <RowDefinition Height="44"/>
+                        </Grid.RowDefinitions>
+                        <Border x:Name="SideIndicator" Grid.Row="0" CornerRadius="22" Background="#30FFFFFF"/>
+                        <Button Grid.Row="0" Style="{StaticResource DockItem}" Tag="0" Click="OnSideDockClick" ToolTip="图库">
+                            <lg:SfSymbol Symbol="photos" Width="20" Height="20" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Grid.Row="1" Style="{StaticResource DockItem}" Tag="1" Click="OnSideDockClick" ToolTip="回忆">
+                            <lg:SfSymbol Symbol="memories" Width="20" Height="20" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Grid.Row="2" Style="{StaticResource DockItem}" Tag="2" Click="OnSideDockClick" ToolTip="收藏">
+                            <lg:SfSymbol Symbol="heart" Width="20" Height="20" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Grid.Row="3" Style="{StaticResource DockItem}" Tag="3" Click="OnSideDockClick" ToolTip="列表">
+                            <lg:SfSymbol Symbol="sliders" Width="20" Height="20" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Grid.Row="4" Style="{StaticResource DockItem}" Tag="4" Click="OnSideDockClick" ToolTip="设置">
+                            <lg:SfSymbol Symbol="gear" Width="20" Height="20" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </lg:GlassSurface>
+
                 <!-- 侧边栏 -->
-                <lg:GlassSurface Grid.Column="0" Material="Regular" CornerRadius="26" Padding="15,14,15,14">
+                <lg:GlassSurface Grid.Column="1" Margin="12,0,0,0" Material="Regular" CornerRadius="26" Padding="15,14,15,14">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -155,7 +189,7 @@
                 </lg:GlassSurface>
 
                 <!-- 照片上的浮层 -->
-                <Grid Grid.Column="1" Margin="14,0,0,0">
+                <Grid Grid.Column="2" Margin="14,0,0,0">
 
                     <Grid VerticalAlignment="Top" Margin="18,16,332,0"
                           shell:WindowChrome.IsHitTestVisibleInChrome="True">
