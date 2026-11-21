@@ -237,8 +237,7 @@
                                     <TextBlock Text="空间音频" FontSize="12.5"/>
                                     <TextBlock Text="头部追踪 · 自动" FontSize="9.5" Opacity="0.58"/>
                                 </StackPanel>
-                                <lgc:GlassToggleSwitch Grid.Column="1" x:Name="SpatialToggle" IsChecked="True"
-                                                       Width="50" Height="30"/>
+                                <lgc:GlassToggleSwitch Grid.Column="1" x:Name="SpatialToggle" IsChecked="True"/>
                             </Grid>
                             <Grid Margin="0,0,0,12">
                                 <Grid.ColumnDefinitions>
@@ -249,7 +248,7 @@
                                     <TextBlock Text="深色外观" FontSize="12.5"/>
                                     <TextBlock Text="跟随系统" FontSize="9.5" Opacity="0.58"/>
                                 </StackPanel>
-                                <lgc:GlassToggleSwitch Grid.Column="1" x:Name="ThemeToggle" Width="50" Height="30"/>
+                                <lgc:GlassToggleSwitch Grid.Column="1" x:Name="ThemeToggle"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,3">

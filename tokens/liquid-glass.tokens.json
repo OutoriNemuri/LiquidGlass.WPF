@@ -60,7 +60,7 @@
       "shadowY": 22,
       "shadowBlur": 46,
       "innerGlow": 0.22,
-      "tintOpacity": 0.5
+      "tintOpacity": 0.42
     },
     "clear": {
       "blur": 8,
@@ -77,7 +77,7 @@
       "shadowY": 14,
       "shadowBlur": 30,
       "innerGlow": 0.14,
-      "tintOpacity": 0.24
+      "tintOpacity": 0.18
     },
     "prominent": {
       "blur": 26,
