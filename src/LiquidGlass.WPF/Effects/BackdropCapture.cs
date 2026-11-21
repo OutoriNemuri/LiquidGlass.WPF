@@ -80,6 +80,7 @@ public static class BackdropCapture
 
     private static FrameworkElement? FindSource(FrameworkElement element)
     {
+        // 1) 祖先链优先：把玻璃放进"内容层"里的常规写法
         var current = (DependencyObject?)VisualTreeHelper.GetParent(element);
         var fallback = (FrameworkElement?)null;
         while (current is not null)
@@ -91,12 +92,33 @@ public static class BackdropCapture
             }
             current = VisualTreeHelper.GetParent(current);
         }
-        if (current is null)
+
+        // 2) 兄弟层：玻璃浮在内容层之上时，内容层不是祖先而是兄弟。
+        //    此时必须找到被标记的那一层，否则会把玻璃自己拍进去，产生"自我捕获"的拖影/散射。
+        var win = Window.GetWindow(element);
+        if (win?.Content is FrameworkElement content)
         {
-            var win = Window.GetWindow(element);
-            if (win?.Content is FrameworkElement content) return content;
+            var marked = FindMarkedDescendant(content);
+            if (marked is not null) return marked;
+            return content;
         }
+
         return fallback;
+    }
+
+    /// <summary>广度优先找第一个 IsSource=True 的后代。</summary>
+    private static FrameworkElement? FindMarkedDescendant(DependencyObject root)
+    {
+        var queue = new Queue<DependencyObject>();
+        queue.Enqueue(root);
+        while (queue.Count > 0)
+        {
+            var node = queue.Dequeue();
+            if (node is FrameworkElement fe && fe != root && GetIsSource(fe)) return fe;
+            var count = VisualTreeHelper.GetChildrenCount(node);
+            for (var i = 0; i < count; i++) queue.Enqueue(VisualTreeHelper.GetChild(node, i));
+        }
+        return null;
     }
 
     /// <summary>把整张捕获位图裁到玻璃元素的矩形上。</summary>

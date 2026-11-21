@@ -4,176 +4,347 @@
         xmlns:lg="clr-namespace:LiquidGlass.WPF.Primitives;assembly=LiquidGlass.WPF"
         xmlns:lgc="clr-namespace:LiquidGlass.WPF.Controls;assembly=LiquidGlass.WPF"
         xmlns:lge="clr-namespace:LiquidGlass.WPF.Effects;assembly=LiquidGlass.WPF"
-        Title="Liquid Glass · WPF" Width="1296" Height="804"
-        MinWidth="960" MinHeight="640"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Liquid Glass · WPF" Width="1240" Height="752"
+        MinWidth="1040" MinHeight="640"
         WindowStartupLocation="CenterScreen"
-        UseSystemBackdrop="True"
+        WindowStyle="None" ResizeMode="CanResize"
+        UseSystemBackdrop="False"
         FontFamily="Segoe UI, Microsoft YaHei UI">
 
-    <Grid>
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="44" ResizeBorderThickness="6"
+                            GlassFrameThickness="0" CornerRadius="0"
+                            UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
 
-        <!-- ── 内容层（壁纸）：被标记为背景捕获源，玻璃从这里取景 ── -->
-        <Grid x:Name="BackdropLayer" lge:BackdropCapture.IsSource="True">
-            <Grid.Background>
-                <ImageBrush ImageSource="Assets/wallpaper.jpg" Stretch="UniformToFill"/>
-            </Grid.Background>
-        </Grid>
+    <lgc:GlassWindow.Resources>
+        <!-- 标签栏里的纯文字按钮：视觉完全由外层深色玻璃提供 -->
+        <Style x:Key="DockItem" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </lgc:GlassWindow.Resources>
 
-        <Grid Margin="18">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="236"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="296"/>
-            </Grid.ColumnDefinitions>
+    <Border x:Name="RootFrame" CornerRadius="22" ClipToBounds="True" Background="#F1F5FB">
+        <Grid>
 
-            <!-- ── 侧边栏 ── -->
-            <lg:GlassSurface Grid.Column="0" Material="Regular" CornerRadius="24" Padding="14" Margin="0,0,12,0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+            <!-- ══ 内容层：壁纸 + 照片都画在这里，玻璃只从这一层取景 ══ -->
+            <Grid x:Name="BackdropLayer" lge:BackdropCapture.IsSource="True">
+                <Grid.Background>
+                    <ImageBrush ImageSource="Assets/wallpaper.jpg" Stretch="UniformToFill"/>
+                </Grid.Background>
+                <Rectangle IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#4DD3E9FF" Offset="0"/>
+                            <GradientStop Color="#0AFFFFFF" Offset="0.42"/>
+                            <GradientStop Color="#3AFFD9EC" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
 
-                    <StackPanel Orientation="Horizontal" Margin="4,2,0,18">
-                        <lg:GlassSurface Width="34" Height="34" CornerRadius="17" Material="Clear">
-                            <lg:SfSymbol Symbol="sparkles" Width="18" Height="18"/>
-                        </lg:GlassSurface>
-                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Liquid Glass" FontSize="15" FontWeight="SemiBold"/>
-                            <TextBlock Text="WPF 主题支持库 · v1.0" FontSize="11" Opacity="0.6"/>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="1">
-                        <TextBlock Text="资料库" FontSize="11" Opacity="0.5" Margin="6,0,0,6"/>
-                        <lgc:GlassButton Content="素材库" IconSymbol="photos" Height="38" CornerRadius="10"
-                                         HorizontalContentAlignment="Left" Material="Regular" Margin="0,0,0,2"/>
-                        <lgc:GlassButton Content="回忆" IconSymbol="memories" Height="38" CornerRadius="10"
-                                         HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,2"/>
-                        <lgc:GlassButton Content="收藏" IconSymbol="heart" Height="38" CornerRadius="10"
-                                         HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,2"/>
-                        <lgc:GlassButton Content="播放列表" IconSymbol="sliders" Height="38" CornerRadius="10"
-                                         HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,2"/>
-
-                        <TextBlock Text="控件" FontSize="11" Opacity="0.5" Margin="6,16,0,6"/>
-                        <lgc:GlassButton Content="主题与材质" IconSymbol="sun" Height="38" CornerRadius="10"
-                                         HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,2"/>
-                        <lgc:GlassButton Content="动画曲线" IconSymbol="bolt" Height="38" CornerRadius="10"
-                                         HorizontalContentAlignment="Left" Material="Clear"/>
-                    </StackPanel>
-
-                    <lg:GlassSurface Grid.Row="2" Material="Clear" CornerRadius="14" Padding="12,10">
-                        <StackPanel>
-                            <Grid>
-                                <TextBlock Text="iCloud 存储" FontSize="12"/>
-                                <TextBlock Text="64%" FontSize="12" HorizontalAlignment="Right" Opacity="0.6"/>
-                            </Grid>
-                            <lgc:GlassSlider x:Name="StorageBar" Minimum="0" Maximum="100" Value="64"
-                                             Height="18" Margin="0,4,0,0" IsHitTestVisible="False"/>
-                        </StackPanel>
-                    </lg:GlassSurface>
+                <Grid Margin="18,16,18,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="232"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="1" Margin="14,0,0,0" CornerRadius="26" ClipToBounds="True">
+                        <Image Source="Assets/hero.jpg" Stretch="UniformToFill"/>
+                    </Border>
                 </Grid>
-            </lg:GlassSurface>
-
-            <!-- ── 内容区 ── -->
-            <Grid Grid.Column="1">
-                <Border CornerRadius="26" ClipToBounds="True">
-                    <Image Source="Assets/hero.jpg" Stretch="UniformToFill"/>
-                </Border>
-
-                <StackPanel VerticalAlignment="Bottom" Margin="30,0,0,34" HorizontalAlignment="Left">
-                    <TextBlock Text="山间的清晨" FontSize="{DynamicResource LiquidGlass.Font.LargeTitle}"
-                               FontWeight="SemiBold"/>
-                    <TextBlock Text="2026 年 10 月 4 日 · 06:12 · 吉林 · 松花湖" FontSize="12"
-                               Opacity="0.72" Margin="0,8,0,12"/>
-                    <StackPanel Orientation="Horizontal">
-                        <lgc:GlassChip Content="晨雾 4°C" IconSymbol="sun" Margin="0,0,8,0"/>
-                        <lgc:GlassChip Content="12 张" IconSymbol="photos" Margin="0,0,8,0"/>
-                        <lgc:GlassChip Content="AI 精选" IconSymbol="sparkles"/>
-                    </StackPanel>
-                </StackPanel>
             </Grid>
 
-            <!-- ── 控制中心 ── -->
-            <lgc:GlassCard Grid.Column="2" Padding="16" Margin="12,0,0,0" Material="Regular">
-                <StackPanel>
-                    <Grid Margin="0,0,0,14">
-                        <TextBlock Text="控制中心" FontSize="17" FontWeight="SemiBold"/>
-                        <lgc:GlassChip Content="GlassMaterial" HorizontalAlignment="Right"
-                                       FontSize="10" Padding="8,3"/>
-                    </Grid>
+            <!-- ══ 玻璃界面层 ══ -->
+            <Grid Margin="18,16,18,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="232"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="渲染质量" FontSize="11" Opacity="0.55"/>
-                    <lgc:GlassSegmentedControl x:Name="QualitySeg" Height="34" Margin="0,6,0,16"
-                                               SelectedIndex="1"/>
-
-                    <TextBlock Text="输出设备" FontSize="11" Opacity="0.55"/>
-                    <lgc:GlassComboBox x:Name="DeviceCombo" Margin="0,6,0,16" SelectedIndex="0">
-                        <ComboBoxItem Content="Studio Display"/>
-                        <ComboBoxItem Content="MacBook Pro 内建"/>
-                        <ComboBoxItem Content="Pro Display XDR"/>
-                        <ComboBoxItem Content="AirPlay 扬声器"/>
-                    </lgc:GlassComboBox>
-
-                    <TextBlock Text="开关" FontSize="11" Opacity="0.55" Margin="0,0,0,8"/>
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="空间音频" FontSize="13"/>
-                            <TextBlock Text="头部追踪 · 自动" FontSize="10.5" Opacity="0.55"/>
-                        </StackPanel>
-                        <lgc:GlassToggleSwitch Grid.Column="1" x:Name="SpatialToggle" IsChecked="True"/>
-                    </Grid>
-                    <Grid Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="深色外观" FontSize="13"/>
-                            <TextBlock Text="跟随系统" FontSize="10.5" Opacity="0.55"/>
-                        </StackPanel>
-                        <lgc:GlassToggleSwitch Grid.Column="1" x:Name="ThemeToggle"/>
-                    </Grid>
-
-                    <TextBlock Text="音量" FontSize="11" Opacity="0.55"/>
-                    <Grid Margin="0,4,0,16">
-                        <lgc:GlassSlider x:Name="VolumeSlider" Minimum="0" Maximum="100" Value="62"/>
-                    </Grid>
-
-                    <TextBlock Text="按钮层级" FontSize="11" Opacity="0.55" Margin="0,0,0,8"/>
-                    <lgc:GlassButton Content="播放全部" IconSymbol="play" Material="Prominent"
-                                     Height="44" CornerRadius="22" Margin="0,0,0,10"/>
+                <!-- 侧边栏 -->
+                <lg:GlassSurface Grid.Column="0" Material="Regular" CornerRadius="26" Padding="15,14,15,14">
                     <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <lgc:GlassButton Content="随机播放" IconSymbol="share" Height="36" CornerRadius="18" Margin="0,0,8,0"/>
-                        <lgc:GlassButton Grid.Column="1" IconSymbol="heart" Height="36" Width="44" CornerRadius="18" Margin="0,0,8,0"/>
-                        <lgc:GlassButton Grid.Column="2" IconSymbol="ellipsis" Height="36" Width="44" CornerRadius="18"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="2,2,0,14"
+                                    shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                            <Ellipse Width="12" Height="12" Fill="#FF5F57" Margin="0,0,8,0"
+                                     Cursor="Hand" MouseLeftButtonUp="OnCloseClick"/>
+                            <Ellipse Width="12" Height="12" Fill="#FEBC2E" Margin="0,0,8,0"
+                                     Cursor="Hand" MouseLeftButtonUp="OnMinimizeClick"/>
+                            <Ellipse Width="12" Height="12" Fill="#28C840"
+                                     Cursor="Hand" MouseLeftButtonUp="OnMaximizeClick"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="2,0,0,18">
+                            <lg:GlassSurface Width="36" Height="36" CornerRadius="18" Material="Clear">
+                                <lg:SfSymbol Symbol="sparkles" Width="18" Height="18"/>
+                            </lg:GlassSurface>
+                            <StackPanel Margin="10,1,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Liquid Glass" FontSize="15" FontWeight="SemiBold"/>
+                                <TextBlock Text="WPF 主题支持库 · v1.0" FontSize="10.5" Opacity="0.62"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2">
+                            <TextBlock Text="资料库" FontSize="10.5" Opacity="0.55" Margin="6,0,0,7"/>
+                            <lgc:GlassButton Content="素材库" IconSymbol="photos" Height="38" CornerRadius="12"
+                                             HorizontalContentAlignment="Left" Material="Regular" Margin="0,0,0,3"/>
+                            <lgc:GlassButton Content="回忆" IconSymbol="memories" Height="38" CornerRadius="12"
+                                             HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,3"/>
+                            <lgc:GlassButton Content="收藏" IconSymbol="heart" Height="38" CornerRadius="12"
+                                             HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,3"/>
+                            <lgc:GlassButton Content="播放列表" IconSymbol="playlist" Height="38" CornerRadius="12"
+                                             HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,3"/>
+
+                            <TextBlock Text="控件" FontSize="10.5" Opacity="0.55" Margin="6,14,0,7"/>
+                            <lgc:GlassButton Content="主题与材质" IconSymbol="sun" Height="38" CornerRadius="12"
+                                             HorizontalContentAlignment="Left" Material="Clear" Margin="0,0,0,3"/>
+                            <lgc:GlassButton Content="动画曲线" IconSymbol="bolt" Height="38" CornerRadius="12"
+                                             HorizontalContentAlignment="Left" Material="Clear"/>
+                        </StackPanel>
+
+                        <lg:GlassSurface Grid.Row="3" Material="Clear" CornerRadius="16" Padding="12,10" Margin="0,10,0,10">
+                            <StackPanel>
+                                <Grid>
+                                    <TextBlock Text="iCloud 存储" FontSize="12"/>
+                                    <TextBlock Text="64%" FontSize="12" HorizontalAlignment="Right" Opacity="0.6"/>
+                                </Grid>
+                                <lgc:GlassSlider x:Name="StorageBar" Minimum="0" Maximum="100" Value="64"
+                                                 Height="16" Margin="0,5,0,0" IsHitTestVisible="False"/>
+                            </StackPanel>
+                        </lg:GlassSurface>
+
+                        <Grid Grid.Row="4" Margin="4,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Ellipse Width="24" Height="24" VerticalAlignment="Center">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#8FA8FF" Offset="0"/>
+                                        <GradientStop Color="#E7B4FF" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <StackPanel Grid.Column="1" Margin="9,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="设计预览" FontSize="11.5" FontWeight="Medium"/>
+                                <TextBlock Text="Dark / Light 自适应" FontSize="10" Opacity="0.55"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </lg:GlassSurface>
+
+                <!-- 照片上的浮层 -->
+                <Grid Grid.Column="1" Margin="14,0,0,0">
+
+                    <Grid VerticalAlignment="Top" Margin="18,16,332,0"
+                          shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <lgc:GlassButton IconSymbol="chevron-left" Width="36" Height="36" CornerRadius="18"
+                                             Material="Clear" Padding="0" Margin="0,0,8,0"/>
+                            <lgc:GlassButton IconSymbol="chevron-right" Width="36" Height="36" CornerRadius="18"
+                                             Material="Clear" Padding="0" Margin="0,0,10,0"/>
+                            <TextBlock Text="回忆" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <lg:GlassSurface Height="34" CornerRadius="17" Material="Clear" Padding="13,0" Margin="0,1,8,0"
+                                             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="照片" FontSize="12" FontWeight="SemiBold"/>
+                                    <TextBlock Text="视频" FontSize="12" Opacity="0.62" Margin="13,0"/>
+                                    <TextBlock Text="人物" FontSize="12" Opacity="0.62"/>
+                                </StackPanel>
+                            </lg:GlassSurface>
+                            <lgc:GlassButton IconSymbol="heart" Width="36" Height="36" CornerRadius="18"
+                                             Material="Clear" Padding="0" Margin="0,0,8,0"/>
+                            <lgc:GlassButton IconSymbol="share" Width="36" Height="36" CornerRadius="18"
+                                             Material="Clear" Padding="0" Margin="0,0,8,0"/>
+                            <lgc:GlassButton IconSymbol="ellipsis" Width="36" Height="36" CornerRadius="18"
+                                             Material="Clear" Padding="0"/>
+                        </StackPanel>
                     </Grid>
 
-                    <TextBlock x:Name="SpecLine" FontFamily="Consolas" FontSize="10" Opacity="0.5"
-                               Margin="0,18,0,0" TextWrapping="Wrap"/>
-                </StackPanel>
-            </lgc:GlassCard>
-        </Grid>
+                    <!-- 控制中心 -->
+                    <lgc:GlassCard HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                                   Width="300" Margin="0,14,14,84" Padding="16" Material="Regular">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="控制中心" FontSize="16" FontWeight="SemiBold"/>
+                                <lgc:GlassChip Content="GlassMaterial" HorizontalAlignment="Right"
+                                               FontSize="9.5" Padding="8,3" Material="Clear"/>
+                            </Grid>
 
-        <!-- ── 悬浮胶囊标签栏 ── -->
-        <lgc:GlassTabBar x:Name="TabBar" Width="512" Height="66"
-                        HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                        Margin="0,0,0,18" SelectedIndex="0">
-            <lgc:GlassTabItem Title="图库" IconSymbol="photos"/>
-            <lgc:GlassTabItem Title="回忆" IconSymbol="memories"/>
-            <lgc:GlassTabItem Title="收藏" IconSymbol="heart"/>
-            <lgc:GlassTabItem Title="列表" IconSymbol="sliders"/>
-            <lgc:GlassTabItem Title="设置" IconSymbol="gear"/>
-        </lgc:GlassTabBar>
-    </Grid>
+                            <TextBlock Text="渲染质量" FontSize="10.5" Opacity="0.58"/>
+                            <lg:GlassSurface x:Name="QualitySeg" Height="32" CornerRadius="16" Material="Clear"
+                                             Padding="3" Margin="0,6,0,12"
+                                             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border x:Name="SegThumb" Grid.Column="1" Margin="1" CornerRadius="13"
+                                            Background="#FFFFFF" Opacity="0.94"/>
+                                    <TextBlock Grid.Column="0" Text="标准" Tag="0" FontSize="11.5"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Cursor="Hand" MouseLeftButtonUp="OnQualityClick"/>
+                                    <TextBlock Grid.Column="1" Text="高保真" Tag="1" FontSize="11.5" FontWeight="SemiBold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Cursor="Hand" MouseLeftButtonUp="OnQualityClick"/>
+                                    <TextBlock Grid.Column="2" Text="无损" Tag="2" FontSize="11.5"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Cursor="Hand" MouseLeftButtonUp="OnQualityClick"/>
+                                </Grid>
+                            </lg:GlassSurface>
+
+                            <TextBlock Text="输出设备" FontSize="10.5" Opacity="0.58"/>
+                            <lgc:GlassComboBox x:Name="DeviceCombo" Margin="0,6,0,12" Height="34" SelectedIndex="0">
+                                <ComboBoxItem Content="Studio Display"/>
+                                <ComboBoxItem Content="MacBook Pro 内建"/>
+                                <ComboBoxItem Content="Pro Display XDR"/>
+                                <ComboBoxItem Content="AirPlay 扬声器"/>
+                            </lgc:GlassComboBox>
+
+                            <TextBlock Text="开关" FontSize="10.5" Opacity="0.58" Margin="0,0,0,8"/>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="空间音频" FontSize="12.5"/>
+                                    <TextBlock Text="头部追踪 · 自动" FontSize="9.5" Opacity="0.58"/>
+                                </StackPanel>
+                                <lgc:GlassToggleSwitch Grid.Column="1" x:Name="SpatialToggle" IsChecked="True"
+                                                       Width="50" Height="30"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="深色外观" FontSize="12.5"/>
+                                    <TextBlock Text="跟随系统" FontSize="9.5" Opacity="0.58"/>
+                                </StackPanel>
+                                <lgc:GlassToggleSwitch Grid.Column="1" x:Name="ThemeToggle" Width="50" Height="30"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,3">
+                                <TextBlock Text="音量" FontSize="10.5" Opacity="0.58"/>
+                                <TextBlock Text="62%" FontSize="10.5" Opacity="0.58" HorizontalAlignment="Right"/>
+                            </Grid>
+                            <lgc:GlassSlider x:Name="VolumeSlider" Minimum="0" Maximum="100" Value="62"
+                                             Margin="0,2,0,14"/>
+
+                            <TextBlock Text="按钮层级" FontSize="10.5" Opacity="0.58" Margin="0,0,0,8"/>
+                            <lgc:GlassButton Content="播放全部" IconSymbol="play" Material="Prominent"
+                                             Height="42" CornerRadius="21" Margin="0,0,0,9"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <lgc:GlassButton Content="随机播放" IconSymbol="share" Height="34" CornerRadius="17"
+                                                 Material="Clear" Margin="0,0,8,0"/>
+                                <lgc:GlassButton Grid.Column="1" IconSymbol="heart" Height="34" Width="42"
+                                                 CornerRadius="17" Material="Clear" Padding="0" Margin="0,0,8,0"/>
+                                <lgc:GlassButton Grid.Column="2" IconSymbol="ellipsis" Height="34" Width="42"
+                                                 CornerRadius="17" Material="Clear" Padding="0"/>
+                            </Grid>
+
+                            <TextBlock x:Name="SpecLine" FontFamily="Consolas" FontSize="9" Opacity="0.45"
+                                       Margin="0,12,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </lgc:GlassCard>
+
+                    <!-- 标题与芯片 -->
+                    <StackPanel VerticalAlignment="Bottom" Margin="34,0,0,96" HorizontalAlignment="Left">
+                        <TextBlock Text="山间的清晨" FontSize="{DynamicResource LiquidGlass.Font.LargeTitle}"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="2026 年 10 月 4 日 · 06:12 · 吉林 · 松花湖" FontSize="12"
+                                   Opacity="0.78" Margin="0,8,0,12"/>
+                        <StackPanel Orientation="Horizontal">
+                            <lgc:GlassChip Content="晨雾 4°C" IconSymbol="sun" Margin="0,0,8,0"/>
+                            <lgc:GlassChip Content="12 张" IconSymbol="photos" Margin="0,0,8,0"/>
+                            <lgc:GlassChip Content="AI 精选" IconSymbol="sparkles"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <!-- ══ 悬浮胶囊 Dock（深色玻璃，可点击） ══ -->
+            <lg:GlassSurface x:Name="DockBar" Width="500" Height="62" CornerRadius="31"
+                             HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,24"
+                             Material="Regular" Padding="5"
+                             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                             TintBrush="#F21B1F27" TintOpacity="0.94"
+                             Foreground="#FFFFFF">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="DockIndicator" Grid.Column="0" Margin="3" CornerRadius="26"
+                            Background="#30FFFFFF"/>
+                    <Button Grid.Column="0" Style="{StaticResource DockItem}" Tag="0" Click="OnDockClick">
+                        <StackPanel>
+                            <lg:SfSymbol Symbol="photos" Width="20" Height="20" HorizontalAlignment="Center"/>
+                            <TextBlock Text="图库" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="1" Style="{StaticResource DockItem}" Tag="1" Click="OnDockClick">
+                        <StackPanel>
+                            <lg:SfSymbol Symbol="memories" Width="20" Height="20" HorizontalAlignment="Center"/>
+                            <TextBlock Text="回忆" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="2" Style="{StaticResource DockItem}" Tag="2" Click="OnDockClick">
+                        <StackPanel>
+                            <lg:SfSymbol Symbol="heart" Width="20" Height="20" HorizontalAlignment="Center"/>
+                            <TextBlock Text="收藏" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="3" Style="{StaticResource DockItem}" Tag="3" Click="OnDockClick">
+                        <StackPanel>
+                            <lg:SfSymbol Symbol="sliders" Width="20" Height="20" HorizontalAlignment="Center"/>
+                            <TextBlock Text="列表" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Column="4" Style="{StaticResource DockItem}" Tag="4" Click="OnDockClick">
+                        <StackPanel>
+                            <lg:SfSymbol Symbol="gear" Width="20" Height="20" HorizontalAlignment="Center"/>
+                            <TextBlock Text="设置" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </lg:GlassSurface>
+        </Grid>
+    </Border>
 </lgc:GlassWindow>

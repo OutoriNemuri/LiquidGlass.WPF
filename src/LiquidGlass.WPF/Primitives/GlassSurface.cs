@@ -41,6 +41,16 @@ public class GlassSurface : ContentControl
         nameof(EffectiveAppearance), typeof(GlassAppearance), typeof(GlassSurface),
         new PropertyMetadata(GlassAppearance.Light));
 
+    /// <summary>自定义色调画刷（例如深色胶囊标签栏）；为空时使用调色板 tint。</summary>
+    public static readonly DependencyProperty TintBrushProperty = DependencyProperty.Register(
+        nameof(TintBrush), typeof(Brush), typeof(GlassSurface),
+        new PropertyMetadata(null, OnVisualChanged));
+
+    /// <summary>自定义色调不透明度（0..1）；NaN 表示使用材质 token。</summary>
+    public static readonly DependencyProperty TintOpacityProperty = DependencyProperty.Register(
+        nameof(TintOpacity), typeof(double), typeof(GlassSurface),
+        new PropertyMetadata(double.NaN, OnVisualChanged));
+
     public GlassMaterialKind Material
     {
         get => (GlassMaterialKind)GetValue(MaterialProperty);
@@ -75,6 +85,18 @@ public class GlassSurface : ContentControl
     /// <summary>只读：实际生效的明暗外观（Auto 时根据背景亮度推断）。</summary>
     public GlassAppearance EffectiveAppearance => (GlassAppearance)GetValue(EffectiveAppearanceProperty);
 
+    public Brush? TintBrush
+    {
+        get => (Brush?)GetValue(TintBrushProperty);
+        set => SetValue(TintBrushProperty, value);
+    }
+
+    public double TintOpacity
+    {
+        get => (double)GetValue(TintOpacityProperty);
+        set => SetValue(TintOpacityProperty, value);
+    }
+
     public GlassSurface()
     {
         DefaultStyleKey = typeof(GlassSurface);
@@ -84,8 +106,8 @@ public class GlassSurface : ContentControl
         Unloaded += (_, __) => StopTimer();
     }
 
-    private Image? _backdrop;
-    private Image? _lens;
+    private Border? _backdrop;
+    private Border? _lens;
     private Border? _tint;
     private Border? _spec;
     private Border? _rim;
@@ -95,8 +117,8 @@ public class GlassSurface : ContentControl
     public override void OnApplyTemplate()
     {
         base.OnApplyTemplate();
-        _backdrop = GetTemplateChild("PART_Backdrop") as Image;
-        _lens = GetTemplateChild("PART_Lens") as Image;
+        _backdrop = GetTemplateChild("PART_Backdrop") as Border;
+        _lens = GetTemplateChild("PART_Lens") as Border;
         _tint = GetTemplateChild("PART_Tint") as Border;
         _spec = GetTemplateChild("PART_Spec") as Border;
         _rim = GetTemplateChild("PART_Rim") as Border;
@@ -174,7 +196,7 @@ public class GlassSurface : ContentControl
             var bitmap = BackdropCapture.Capture(this, scale: 0.4);
             if (bitmap is not null)
             {
-                _backdrop.Source = bitmap;
+                _backdrop.Background = new ImageBrush(bitmap) { Stretch = Stretch.Fill };
                 _backdrop.Effect = GlassTheme.ReduceTransparency || spec.Blur <= 0
                     ? null
                     : new BlurEffect { Radius = spec.Blur * 0.4, RenderingBias = RenderingBias.Performance };
@@ -200,7 +222,7 @@ public class GlassSurface : ContentControl
             }
             else
             {
-                _backdrop.Source = null;
+                _backdrop.Background = null;
                 _backdrop.Effect = null;
             }
         }
@@ -208,7 +230,7 @@ public class GlassSurface : ContentControl
         // 3) 透镜层：同一张背景的放大副本，模拟边缘弯折
         if (_lens is not null)
         {
-            _lens.Source = _backdrop?.Source;
+            _lens.Background = _backdrop?.Background;
             var scale = spec.LensScale <= 0 ? 1 : spec.LensScale;
             if (_lens.RenderTransform is not ScaleTransform st)
             {
@@ -218,7 +240,7 @@ public class GlassSurface : ContentControl
             }
             st.ScaleX = scale;
             st.ScaleY = scale;
-            _lens.Opacity = GlassTheme.ReduceTransparency ? 0 : Math.Min(0.48, spec.LensOpacity * 0.42);
+            _lens.Opacity = GlassTheme.ReduceTransparency ? 0 : Math.Min(0.32, spec.LensOpacity * 0.38);
             if (spec.LensBlur > 0)
                 _lens.Effect = new BlurEffect { Radius = spec.LensBlur * 0.35 };
             else
@@ -228,23 +250,32 @@ public class GlassSurface : ContentControl
         // 4) 色调层（可读性保障）
         if (_tint is not null)
         {
-            var opacity = GlassTheme.ReduceTransparency
-                ? 0.96
-                : (Material == GlassMaterialKind.Clear ? palette.TintOpacityClear : spec.TintOpacity);
-            var tintColor = Material == GlassMaterialKind.Prominent ? palette.Accent : palette.Tint;
-            _tint.Background = new SolidColorBrush(WithAlpha(tintColor, (byte)Math.Round(opacity * 255)));
+            if (TintBrush is Brush custom)
+            {
+                _tint.Background = custom;
+                _tint.Opacity = double.IsNaN(TintOpacity) ? 1.0 : Math.Clamp(TintOpacity, 0, 1);
+            }
+            else
+            {
+                var opacity = GlassTheme.ReduceTransparency
+                    ? 0.96
+                    : (Material == GlassMaterialKind.Clear ? palette.TintOpacityClear : spec.TintOpacity);
+                var tintColor = Material == GlassMaterialKind.Prominent ? palette.Accent : palette.Tint;
+                _tint.Background = new SolidColorBrush(WithAlpha(tintColor, (byte)Math.Round(opacity * 255)));
+                _tint.Opacity = 1;
+            }
         }
 
         // 5) 镜面高光
         if (_spec is not null)
         {
-            var alpha = (byte)Math.Round(Math.Clamp(spec.Specular, 0, 1) * (GlassTheme.IncreaseContrast ? 0.55 : 0.85) * 255);
+            var alpha = (byte)Math.Round(Math.Clamp(spec.Specular, 0, 1) * (GlassTheme.IncreaseContrast ? 0.48 : 0.62) * 255);
             _spec.Background = new LinearGradientBrush(
                 new GradientStopCollection
                 {
                     new GradientStop(Color.FromArgb(alpha, 255, 255, 255), 0),
-                    new GradientStop(Color.FromArgb((byte)(alpha * 0.35), 255, 255, 255), 0.34),
-                    new GradientStop(Colors.Transparent, 0.62),
+                    new GradientStop(Color.FromArgb((byte)(alpha * 0.22), 255, 255, 255), 0.42),
+                    new GradientStop(Colors.Transparent, 0.70),
                 },
                 new Point(0, 0), new Point(0, 1));
             _spec.Opacity = 1;
@@ -265,17 +296,10 @@ public class GlassSurface : ContentControl
                 },
                 new Point(0, 0), new Point(0, 1));
 
+            // 投影不再挂在内容宿主上：Effect 会连文字一起模糊成"重影"，
+            // 而且每个玻璃各一份 DropShadowEffect 是主要性能开销。改为纯描边。
             if (_clipHost is not null)
-                _clipHost.Effect = GlassTheme.ReduceTransparency
-                    ? null
-                    : new DropShadowEffect
-                    {
-                        Color = palette.Shadow,
-                        Opacity = Math.Clamp(0.9 * spec.ShadowOpacity, 0, 1),
-                        BlurRadius = spec.ShadowBlur,
-                        ShadowDepth = 0,
-                        Direction = 270,
-                    };
+                _clipHost.Effect = null;
         }
     }
 

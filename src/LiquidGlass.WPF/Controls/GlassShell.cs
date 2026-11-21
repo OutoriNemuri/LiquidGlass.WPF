@@ -30,7 +30,7 @@ public class GlassCard : ContentControl
         set => SetValue(MaterialProperty, value);
     }
 
-    public new CornerRadius CornerRadius
+    public CornerRadius CornerRadius
     {
         get => (CornerRadius)GetValue(CornerRadiusProperty);
         set => SetValue(CornerRadiusProperty, value);
@@ -85,15 +85,34 @@ public class GlassWindow : Window
     {
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         Background = Brushes.Transparent;
-        SourceInitialized += (_, __) => ApplySystemMaterial();
+        SourceInitialized += (_, __) => { ClampToWorkArea(); ApplySystemMaterial(); };
         Activated += (_, __) => ApplySystemMaterial();
+    }
+
+    /// <summary>把窗口收进屏幕工作区：否则 1296×804 这类尺寸在 1366×768 上会被裁掉底边。</summary>
+    private void ClampToWorkArea()
+    {
+        var area = SystemParameters.WorkArea;
+        var maxWidth = Math.Max(320, area.Width - 16);
+        var maxHeight = Math.Max(240, area.Height - 16);
+
+        if (Width <= 0 || double.IsNaN(Width)) Width = maxWidth;
+        if (Height <= 0 || double.IsNaN(Height)) Height = maxHeight;
+        if (Width > maxWidth) Width = maxWidth;
+        if (Height > maxHeight) Height = maxHeight;
+
+        if (Left + Width > area.Right) Left = area.Right - Width;
+        if (Top + Height > area.Bottom) Top = area.Bottom - Height;
+        if (Left < area.Left) Left = area.Left;
+        if (Top < area.Top) Top = area.Top;
     }
 
     private void ApplySystemMaterial()
     {
         if (!UseSystemBackdrop) return;
         var tint = GlassTheme.Palette.Tint;
-        var accent = Color.FromArgb(180, tint.R, tint.G, tint.B);
+        // Win10 的亚克力是全窗口覆盖层：alpha 太高会把整个界面洗成奶白色，取 25% 只做轻微环境色。
+        var accent = Color.FromArgb(64, tint.R, tint.G, tint.B);
         DwmInterop.EnableSystemBackdrop(this, SystemBackdrop, accent);
         DwmInterop.SetRoundedCorners(this, true);
         DwmInterop.ExtendFrameIntoClientArea(this);
@@ -112,7 +131,7 @@ public class GlassScrollEdgeEffect : Control
         nameof(Side), typeof(EdgeSide), typeof(GlassScrollEdgeEffect),
         new PropertyMetadata(EdgeSide.Top, (d, e) => ((GlassScrollEdgeEffect)d).InvalidateVisual()));
 
-    public static readonly DependencyProperty HeightProperty = DependencyProperty.Register(
+    public static new readonly DependencyProperty HeightProperty = DependencyProperty.Register(
         nameof(Height), typeof(double), typeof(GlassScrollEdgeEffect), new PropertyMetadata(64.0));
 
     public static readonly DependencyProperty StrengthProperty = DependencyProperty.Register(

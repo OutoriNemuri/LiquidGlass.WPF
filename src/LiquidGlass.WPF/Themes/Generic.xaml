@@ -39,8 +39,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type lg:GlassSurface}">
                     <Grid x:Name="PART_ClipHost" Background="Transparent">
-                        <Image x:Name="PART_Backdrop" Stretch="Fill" IsHitTestVisible="False"/>
-                        <Image x:Name="PART_Lens" Stretch="Fill" IsHitTestVisible="False"/>
+                        <!-- 用 Border + ImageBrush 而不是 Image：Image 会按位图原始像素尺寸参与测量，
+                             导致每个玻璃元素被"撑大"，进而自我捕获、越滚越大。 -->
+                        <Border x:Name="PART_Backdrop" IsHitTestVisible="False"/>
+                        <Border x:Name="PART_Lens" IsHitTestVisible="False"/>
                         <Border x:Name="PART_Tint" IsHitTestVisible="False"/>
                         <Border x:Name="PART_Spec" IsHitTestVisible="False"/>
                         <Border x:Name="PART_Rim" IsHitTestVisible="False" Background="Transparent"/>
@@ -127,9 +129,11 @@
                                      Padding="0">
                         <Grid>
                             <Border CornerRadius="{TemplateBinding CornerRadius}"
+                                    Background="{DynamicResource LiquidGlass.Brush.SystemFill}"/>
+                            <Border CornerRadius="{TemplateBinding CornerRadius}"
                                     Background="{DynamicResource LiquidGlass.Brush.Accent}"
                                     Opacity="{Binding KnobProgress, RelativeSource={RelativeSource TemplatedParent}}"/>
-                            <Border x:Name="PART_Knob" Width="26" Height="26" CornerRadius="13"
+                            <Border x:Name="PART_Knob" Width="24" Height="24" CornerRadius="12"
                                     HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0,0,0"
                                     Background="#FFFFFF">
                                 <Border.Effect>
@@ -228,7 +232,7 @@
          GlassTabBar / GlassTabItem
          ============================================================ -->
     <Style TargetType="{x:Type lgc:GlassTabItem}">
-        <Setter Property="Foreground" Value="{DynamicResource LiquidGlass.Brush.Label}"/>
+        <!-- 不写死 Foreground：让标签跟随宿主标签栏（浅色玻璃=深色字，深色玻璃=白字） -->
         <Setter Property="Opacity" Value="0.62"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -268,7 +272,9 @@
                 <ControlTemplate TargetType="{x:Type lgc:GlassTabBar}">
                     <lg:GlassSurface Material="{TemplateBinding Material}"
                                      CornerRadius="34"
-                                     Padding="5">
+                                     Padding="5"
+                                     TintBrush="{TemplateBinding TintBrush}"
+                                     TintOpacity="{TemplateBinding TintOpacity}">
                         <Grid>
                             <Border x:Name="PART_Indicator"
                                     HorizontalAlignment="Left" VerticalAlignment="Stretch"
@@ -415,11 +421,11 @@
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
                         <Popup x:Name="PART_Popup" Placement="Bottom" AllowsTransparency="True"
                                Focusable="False" PopupAnimation="None"
+                               Width="{TemplateBinding ActualWidth}"
                                IsOpen="{TemplateBinding IsDropDownOpen}">
                             <lg:GlassSurface Material="Regular" CornerRadius="14" Padding="4"
-                                             Margin="0,6,0,0"
-                                             MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
-                                <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                                             Margin="0,6,0,0">
+                                <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
                                     <ItemsPresenter/>
                                 </ScrollViewer>
                             </lg:GlassSurface>

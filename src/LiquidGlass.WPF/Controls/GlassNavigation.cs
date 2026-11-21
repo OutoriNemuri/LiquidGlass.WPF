@@ -80,6 +80,12 @@ public class GlassTabBar : ItemsControl
     public static readonly DependencyProperty IsMinimizedProperty = DependencyProperty.Register(
         nameof(IsMinimized), typeof(bool), typeof(GlassTabBar), new PropertyMetadata(false));
 
+    public static readonly DependencyProperty TintBrushProperty = DependencyProperty.Register(
+        nameof(TintBrush), typeof(Brush), typeof(GlassTabBar), new PropertyMetadata(null));
+
+    public static readonly DependencyProperty TintOpacityProperty = DependencyProperty.Register(
+        nameof(TintOpacity), typeof(double), typeof(GlassTabBar), new PropertyMetadata(double.NaN));
+
     public int SelectedIndex
     {
         get => (int)GetValue(SelectedIndexProperty);
@@ -102,6 +108,18 @@ public class GlassTabBar : ItemsControl
     {
         get => (GlassMaterialKind)GetValue(MaterialProperty);
         set => SetValue(MaterialProperty, value);
+    }
+
+    public Brush? TintBrush
+    {
+        get => (Brush?)GetValue(TintBrushProperty);
+        set => SetValue(TintBrushProperty, value);
+    }
+
+    public double TintOpacity
+    {
+        get => (double)GetValue(TintOpacityProperty);
+        set => SetValue(TintOpacityProperty, value);
     }
 
     /// <summary>滚动时收起为更小的胶囊（iOS 26 tab bar 的 minimize 行为）。</summary>

@@ -164,7 +164,7 @@ public class GlassToggleSwitch : ToggleButton
 
     private void UpdateKnobOffset()
     {
-        var travel = Math.Max(0, ActualWidth - 26 - 6);
+        var travel = Math.Max(0, ActualWidth - 24 - 6);
         KnobOffset = KnobProgress * travel;
     }
 
