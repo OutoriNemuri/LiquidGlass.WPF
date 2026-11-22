@@ -4,8 +4,10 @@
 > 单一 token 数据源 → 一套材质引擎 → 全部控件共享同一份光学与动效参数。
 
 - **目标框架**：`net8.0-windows`（WPF，Windows 10 1809+ / Windows 11 推荐）
-- **无第三方依赖**：只用 WPF 自带能力（`BackdropCapture` + `DropShadowEffect` + `DispatcherTimer`），不引入 WinUI / Composition 包
+- **无第三方依赖**：只用 WPF 自带能力（`RenderTargetBitmap` + `BlurEffect` + `DispatcherTimer`），不引入 WinUI / Composition 包
 - **设计原则**：玻璃只用于「导航层 / 控件层」，内容层保持非玻璃；所有圆角遵循 concentric 规则
+
+> **实机状态**：见 [STATUS.md](STATUS.md)。
 
 ---
 
@@ -20,7 +22,7 @@ iOS 26 的 Liquid Glass 不是"高斯模糊 + 白底"，而是**透镜（lensing
 | 3 | **Lens 边缘折射** | `GlassSurface` 的 `PART_Lens` | 同一张背景的 `scale 1.035` 副本，叠加在模糊层之上，模拟边缘放大 |
 | 4 | **Tint 色调层** | `GlassSurface` 的 `PART_Tint` | `color-mix` 等价物：`Color.FromArgb(opacity × 255, tint)` |
 | 5 | **Specular 镜面高光** | `GlassSurface` 的 `PART_Spec` | 上亮下透的线性渐变，强度随材质变化 |
-| 6 | **Rim 内描边 + 投影** | `GlassSurface` 的 `PART_Rim` + `DropShadowEffect` | 1px 内环（上亮下暗）+ 自适应投影，制造玻璃厚度 |
+| 6 | **Rim 内描边** | `GlassSurface` 的 `PART_Rim` | 1px 内环（上亮下暗），制造玻璃厚度。**不使用 `DropShadowEffect`**：它会连文字一起模糊、且每块玻璃各一份是主要开销 |
 
 此外还有两个"柔性"能力：
 
@@ -98,7 +100,7 @@ protected override void OnStartup(StartupEventArgs e)
 
 ## 5. 主题扩展（三种粒度）
 
-**① 改 token（推荐）**：编辑 `tokens/liquid-glass.tokens.json`，重新编译即可。C# 通过 `EmbeddedResource` 读取，`preview/` 渲染器读同一份文件 —— 两边永远一致。
+**① 改 token（推荐）**：编辑 `tokens/liquid-glass.tokens.json`，重新编译即可。C# 通过 `EmbeddedResource` 读取，是运行时的唯一数据源。改完重新编译即可，无需改任何 C# 代码。
 
 **② 运行时换调色板**：`GlassTheme.Mode = GlassThemeMode.Dark`，所有玻璃 `Refresh()` 重新合成，无需重建控件。
 
@@ -116,13 +118,13 @@ protected override void OnStartup(StartupEventArgs e)
 - 捕获位图按 **0.4 倍降采样**，模糊在缩放空间里做，代价约为全尺寸的 1/6；
 - 同一帧内多个玻璃共享一次捕获（`BackdropCapture` 内有 16ms 缓存）；
 - 静态界面不要开 `IsLive`；滚动/视频场景再开，并按需把 `LiveFrameRate` 降到 20–30；
-- `DropShadowEffect` 是最贵的一层，列表中大量小玻璃建议 `Material="Hard"`（`shadowOpacity 0.6`、无透镜层）。
+- 背景捕获是主要开销：`RenderTargetBitmap` 走 CPU 光栅化并回读，静态界面请勿开 `IsLive`；列表中大量小玻璃建议 `Material="Hard"`（无透镜层）。
 
 ---
 
 ## 7. 已知限制
 
-- **只能运行在 Windows**：WPF 不支持跨平台。本仓库的渲染图是在 Linux 上用同一份 token 的 1:1 复刻渲染器（`preview/`）产出的；Windows 上运行 Demo 的视觉与此一致，但像素级仍会有 DPI/字体差异。
+- **只能运行在 Windows**：WPF 不支持跨平台。`renders/` 下的图片是按同一份 token 制作的视觉参考稿，用于表达设计意图，并非本仓库代码的逐像素渲染输出；实机表现与已知差异见 [STATUS.md](STATUS.md)。
 - `BackdropCapture` 基于 `RenderTargetBitmap`，在**远程桌面 / 软件渲染**下可能返回空，此时玻璃会自动降级为纯色调（不会崩）。
 - 透镜层目前是"整块放大"的几何近似；真正的边缘折射需要 `Shaders/LensRefraction.hlsl` 编译出的 `.cso`（`fxc /T ps_2_0`）。缺失时自动走几何路径，视觉差异主要在 1–2px 的边缘色散。
 - 不做 WinUI 3 / UWP 的 `SystemBackdrop` 桥接。
@@ -142,7 +144,7 @@ LiquidGlass.WPF/
 │  ├─ Theme/         GlassTokens · GlassTheme
 │  ├─ Shaders/       LensRefraction.hlsl（可选）
 │  └─ Themes/Generic.xaml               # 全部默认模板
-└─ samples/LiquidGlass.Demo/            # 与渲染图一致的三栏演示
+└─ samples/LiquidGlass.Demo/            # 三栏演示（含竖向 Dock）
 ```
 
 ## 9. 设计参考
