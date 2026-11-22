@@ -88,7 +88,16 @@
                             <RowDefinition Height="44"/>
                             <RowDefinition Height="44"/>
                         </Grid.RowDefinitions>
-                        <Border x:Name="SideIndicator" Grid.Row="0" CornerRadius="22" Background="#30FFFFFF"/>
+                        <Border x:Name="SideIndicator" Grid.Row="0" CornerRadius="20" Background="#30FFFFFF"
+                                VerticalAlignment="Top" Height="38" Margin="0,3,0,0"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <TransformGroup>
+                                    <TranslateTransform x:Name="SideShift"/>
+                                    <ScaleTransform x:Name="SideSquash" ScaleX="1" ScaleY="1"/>
+                                </TransformGroup>
+                            </Border.RenderTransform>
+                        </Border>
                         <Button Grid.Row="0" Style="{StaticResource DockItem}" Tag="0" Click="OnSideDockClick" ToolTip="图库">
                             <lg:SfSymbol Symbol="photos" Width="20" Height="20" HorizontalAlignment="Center"/>
                         </Button>
@@ -344,8 +353,16 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border x:Name="DockIndicator" Grid.Column="0" Margin="3" CornerRadius="26"
-                            Background="#30FFFFFF"/>
+                    <Border x:Name="DockIndicator" Margin="3" CornerRadius="26"
+                            Background="#30FFFFFF" HorizontalAlignment="Left" Width="92"
+                            RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <TransformGroup>
+                                <TranslateTransform x:Name="DockShift"/>
+                                <ScaleTransform x:Name="DockSquash" ScaleX="1" ScaleY="1"/>
+                            </TransformGroup>
+                        </Border.RenderTransform>
+                    </Border>
                     <Button Grid.Column="0" Style="{StaticResource DockItem}" Tag="0" Click="OnDockClick">
                         <StackPanel>
                             <lg:SfSymbol Symbol="photos" Width="20" Height="20" HorizontalAlignment="Center"/>

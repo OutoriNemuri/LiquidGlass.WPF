@@ -62,6 +62,16 @@ public sealed class Spring
     }
 
     public void Poke(double velocity) { Velocity += velocity; IsSettled = false; }
+
+    /// <summary>
+    /// 改目标并重新唤醒：直接给 Target 赋值不会清除 IsSettled 标记，
+    /// 静止状态下改目标必须走这里，否则动画永远不会启动。
+    /// </summary>
+    public void Retarget(double target)
+    {
+        Target = target;
+        if (Math.Abs(Value - target) > 1e-4) IsSettled = false;
+    }
 }
 
 /// <summary>

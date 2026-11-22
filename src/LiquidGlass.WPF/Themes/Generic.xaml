@@ -45,6 +45,8 @@
                         <Border x:Name="PART_Lens" IsHitTestVisible="False"/>
                         <Border x:Name="PART_Tint" IsHitTestVisible="False"/>
                         <Border x:Name="PART_Spec" IsHitTestVisible="False"/>
+                        <!-- 色散：玻璃边缘的暖/冷色偏移，模拟折射 -->
+                        <Border x:Name="PART_Dispersion" IsHitTestVisible="False" BorderThickness="1.4"/>
                         <Border x:Name="PART_Rim" IsHitTestVisible="False" Background="Transparent"/>
                         <ContentPresenter
                             Margin="{TemplateBinding Padding}"

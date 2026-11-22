@@ -110,6 +110,7 @@ public class GlassSurface : ContentControl
     private Border? _lens;
     private Border? _tint;
     private Border? _spec;
+    private Border? _dispersion;
     private Border? _rim;
     private Grid? _clipHost;
     private DispatcherTimer? _timer;
@@ -121,6 +122,7 @@ public class GlassSurface : ContentControl
         _lens = GetTemplateChild("PART_Lens") as Border;
         _tint = GetTemplateChild("PART_Tint") as Border;
         _spec = GetTemplateChild("PART_Spec") as Border;
+        _dispersion = GetTemplateChild("PART_Dispersion") as Border;
         _rim = GetTemplateChild("PART_Rim") as Border;
         _clipHost = GetTemplateChild("PART_ClipHost") as Grid;
         ApplyGeometry();
@@ -210,8 +212,9 @@ public class GlassSurface : ContentControl
                     if (EffectiveAppearance != effective)
                     {
                         SetValue(EffectiveAppearanceProperty, effective);
+                        // 背景偏暗 → 文字提亮；背景偏亮 → 用主题强调文字色
                         Foreground = new SolidColorBrush(effective == GlassAppearance.Dark
-                            ? palette.Label
+                            ? Color.FromRgb(0xF2, 0xF4, 0xF8)
                             : palette.Label);
                     }
                 }
@@ -227,7 +230,9 @@ public class GlassSurface : ContentControl
             }
         }
 
-        // 3) 透镜层：同一张背景的放大副本，模拟边缘弯折
+        // 3) 透镜层：同一张背景的放大副本，但只在边缘环带可见。
+        //    Apple 的 Liquid Glass 是"边缘弯曲"（bending of edges），
+        //    整面放大只会变成一层灰雾，所以用蒙版限制成环带。
         if (_lens is not null)
         {
             _lens.Background = _backdrop?.Background;
@@ -240,11 +245,12 @@ public class GlassSurface : ContentControl
             }
             st.ScaleX = scale;
             st.ScaleY = scale;
-            _lens.Opacity = GlassTheme.ReduceTransparency ? 0 : Math.Min(0.32, spec.LensOpacity * 0.38);
+            _lens.Opacity = GlassTheme.ReduceTransparency ? 0 : Math.Min(0.85, 0.25 + spec.LensOpacity * 0.75);
             if (spec.LensBlur > 0)
                 _lens.Effect = new BlurEffect { Radius = spec.LensBlur * 0.35 };
             else
                 _lens.Effect = null;
+            _lens.OpacityMask = BuildRingMask(ActualWidth, ActualHeight, CornerRadius.TopLeft);
         }
 
         // 4) 色调层（可读性保障）
@@ -257,10 +263,15 @@ public class GlassSurface : ContentControl
             }
             else
             {
-                var opacity = GlassTheme.ReduceTransparency
-                    ? 0.96
-                    : (Material == GlassMaterialKind.Clear ? palette.TintOpacityClear : spec.TintOpacity);
+                var baseOpacity = Material == GlassMaterialKind.Clear ? palette.TintOpacityClear : spec.TintOpacity;
+                var opacity = GlassTheme.ReduceTransparency ? 0.96 : baseOpacity;
+                // 自适应：深色背景上玻璃要更"实"一点，否则白字读不清（HIG legibility）
                 var tintColor = Material == GlassMaterialKind.Prominent ? palette.Accent : palette.Tint;
+                if (Material != GlassMaterialKind.Prominent && EffectiveAppearance == GlassAppearance.Dark)
+                {
+                    tintColor = Color.FromRgb(0x0B, 0x0E, 0x14);
+                    opacity = GlassTheme.ReduceTransparency ? 0.96 : Math.Min(0.72, baseOpacity + 0.16);
+                }
                 _tint.Background = new SolidColorBrush(WithAlpha(tintColor, (byte)Math.Round(opacity * 255)));
                 _tint.Opacity = 1;
             }
@@ -274,11 +285,28 @@ public class GlassSurface : ContentControl
                 new GradientStopCollection
                 {
                     new GradientStop(Color.FromArgb(alpha, 255, 255, 255), 0),
-                    new GradientStop(Color.FromArgb((byte)(alpha * 0.22), 255, 255, 255), 0.42),
-                    new GradientStop(Colors.Transparent, 0.70),
+                    new GradientStop(Color.FromArgb((byte)(alpha * 0.20), 255, 255, 255), 0.38),
+                    new GradientStop(Colors.Transparent, 0.68),
+                    // 底部回光：玻璃边缘让背景折进来的一点亮度
+                    new GradientStop(Color.FromArgb((byte)(alpha * 0.30), 255, 255, 255), 1),
                 },
                 new Point(0, 0), new Point(0, 1));
             _spec.Opacity = 1;
+        }
+
+        // 5b) 色散：边缘一圈暖→冷的偏移，模拟折射率随波长变化
+        if (_dispersion is not null)
+        {
+            _dispersion.CornerRadius = CornerRadius;
+            _dispersion.Opacity = GlassTheme.ReduceTransparency ? 0 : 0.70;
+            _dispersion.BorderBrush = new LinearGradientBrush(
+                new GradientStopCollection
+                {
+                    new GradientStop(Color.FromArgb(72, 255, 176, 122), 0.0),
+                    new GradientStop(Color.FromArgb(30, 255, 255, 255), 0.45),
+                    new GradientStop(Color.FromArgb(64, 128, 200, 255), 1.0),
+                },
+                new Point(0, 0), new Point(1, 1));
         }
 
         // 6) 描边（上亮下暗，制造厚度）
@@ -301,6 +329,30 @@ public class GlassSurface : ContentControl
             if (_clipHost is not null)
                 _clipHost.Effect = null;
         }
+    }
+
+    /// <summary>圆角矩形的"环带"蒙版：边缘一圈不透明，中间透明。</summary>
+    private static Brush BuildRingMask(double w, double h, double radius)
+    {
+        if (w <= 0 || h <= 0) return Brushes.White;
+        radius = Math.Max(0, radius);
+        var band = Math.Clamp(Math.Min(w, h) * 0.13, 5.0, 26.0);
+        var outer = new RectangleGeometry(new Rect(0, 0, w, h), radius, radius);
+        var innerRect = new Rect(band, band, Math.Max(1, w - band * 2), Math.Max(1, h - band * 2));
+        var inner = new RectangleGeometry(innerRect,
+            Math.Max(2, radius - band), Math.Max(2, radius - band));
+        var ring = new CombinedGeometry(GeometryCombineMode.Exclude, outer, inner);
+        var drawing = new GeometryDrawing(Brushes.White, null, ring);
+        return new DrawingBrush(drawing)
+        {
+            Stretch = Stretch.None,
+            AlignmentX = AlignmentX.Left,
+            AlignmentY = AlignmentY.Top,
+            ViewboxUnits = BrushMappingMode.Absolute,
+            Viewbox = new Rect(0, 0, w, h),
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, w, h),
+        };
     }
 
     private static Color WithAlpha(Color c, byte a) => Color.FromArgb(a, c.R, c.G, c.B);
